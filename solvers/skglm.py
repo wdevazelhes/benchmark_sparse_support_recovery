@@ -1,5 +1,5 @@
 from benchopt import BaseSolver, safe_import_context
-from benchmark_utils.stopping_criterion import RunOnGridCriterion
+from benchopt.stopping_criterion import SingleRunCriterion
 
 with safe_import_context() as import_ctx:
     import numpy as np
@@ -9,10 +9,11 @@ with safe_import_context() as import_ctx:
 
 class Solver(BaseSolver):
     name = "skglm"
-    stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
+    # stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
+    stopping_criterion = SingleRunCriterion(1)
     parameters = {
         "estimator": ["lasso", "enet", "mcp"],
-        "max_iter": [1_000],
+        "max_iter": [1_0000000],
         "alphaNum": [1_000],
         "alphaRatio": [1e-10],
         "debiasing_step": [False, True],
@@ -20,9 +21,10 @@ class Solver(BaseSolver):
     install_cmd = "conda"
     requirements = ["pip:skglm", "scipy"]
 
-    def set_objective(self, X, y):
+    def set_objective(self, X, y, w_true):
         self.X = X
         self.y = y
+        self.w_true = w_true
         self.alphaMax = np.linalg.norm(self.X.T @ self.y, np.inf) / y.size
         self.alphaMin = self.alphaRatio * self.alphaMax
         self.alphaGrid = np.logspace(
@@ -31,11 +33,12 @@ class Solver(BaseSolver):
             self.alphaNum,
         )
 
-    def run(self, grid_value):
+    def run(self, n_iter):
         # The grid_value parameter is the current entry in
         # self.stopping_criterion.grid which is the amount of sparsity we
         # target in the solution, i.e., the fraction of non-zero entries.
-        k = int(np.floor(grid_value * self.X.shape[1]))
+        # k = int(np.floor(grid_value * self.X.shape[1]))
+        k = np.count_nonzero(self.w_true)
 
         if self.estimator == "lasso":
             solver_class = Lasso
