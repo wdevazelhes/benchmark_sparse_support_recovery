@@ -77,16 +77,21 @@ class KSN(BasePenalty):
     def value(self, w):
         """Compute the value of KSN at w."""
         # print('computing a cost')
-        return self.alpha * (1/2 * _ksncost(w, self.k, self.alpha) - 1/2 * np.linalg.norm(w)**2)
+        k = self.k
+        alpha = self.alpha
+        return alpha * (1/2 * _ksncost(w, k, alpha) - 1/2 * np.linalg.norm(w)**2)
 
     def prox_vec(self, x, stepsize):
         # print('computing a prox')
         alpha = self.alpha
         coef = stepsize * alpha
+        k = self.k
         if coef < 1:
-            return _op_method(coef/(1 - coef), self.k, x/(1-coef))
+            # print(coef, k, x)
+            return _op_method(coef/(1 - coef), k, x/(1-coef))
         else: 
-            return _hard_threshold(x, self.k)
+            # return 1
+            return _hard_threshold(x, k)
         # prox = np.zeros_like(x)
 
         # abs_x = np.abs(x)

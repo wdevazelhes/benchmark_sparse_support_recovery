@@ -30,22 +30,11 @@ class ProxGD(BaseSolver):
 
         if X_is_sparse:
             datafit.initialize_sparse(X.data, X.indptr, X.indices, y)
+            lipschitz = datafit.get_global_lipschitz_sparse(X.data, X.indptr, X.indices, y)
         else:
             datafit.initialize(X, y)
-
-        try:
-            if X_is_sparse:
-                datafit.init_global_lipschitz_sparse(X.data, X.indptr, X.indices, y)
-            else:
-                datafit.init_global_lipschitz(X, y)
-        except AttributeError as e:
-            sparse_suffix = '_sparse' if X_is_sparse else ''
-
-            raise Exception(
-                "Datafit is not compatible with FISTA solver.\n Datafit must "
-                f"implement `init_global_lipschitz{sparse_suffix}` method") from e
-
-        lipschitz = datafit.global_lipschitz
+            lipschitz = datafit.get_global_lipschitz(X, y)        
+        
         for n_iter in range(self.max_iter):
             # t_old = t_new
             # t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
