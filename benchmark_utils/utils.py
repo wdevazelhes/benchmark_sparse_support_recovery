@@ -71,8 +71,8 @@ def _binary_search(beta, k, input_data, alpha):
         tolerance = 1e-4
 
         # Checking particular to be sure that the solution is in the array
-        sum0 = _compute_theta(beta, data_abs, alpha[0], extra_factor).sum()
-        sum1 = _compute_theta(beta, data_abs, alpha[-1], extra_factor).sum()
+        sum0 = _compute_theta(beta, data_abs, alpha[0]).sum()
+        sum1 = _compute_theta(beta, data_abs, alpha[-1]).sum()
 
         if sum1 <= k:
             midpoint = alpha.shape[0] - 2
@@ -93,14 +93,12 @@ def _binary_search(beta, k, input_data, alpha):
                 sum0 = _compute_theta(
                     beta,
                     data_abs,
-                    alpha[first_idx],
-                    extra_factor,
+                    alpha[first_idx]
                 ).sum()
                 sum1 = _compute_theta(
                     beta,
                     data_abs,
-                    alpha[last_idx],
-                    extra_factor,
+                    alpha[last_idx]
                 ).sum()
 
                 if (np.abs(sum0 - k) <= tolerance):
@@ -117,14 +115,12 @@ def _binary_search(beta, k, input_data, alpha):
                     sum0 = _compute_theta(
                         beta,
                         data_abs,
-                        alpha[first_idx],
-                        extra_factor,
+                        alpha[first_idx]
                     ).sum()
                     sum1 = _compute_theta(
                         beta,
                         data_abs,
-                        alpha[last_idx],
-                        extra_factor,
+                        alpha[last_idx]
                     ).sum()
 
                     if (sum0 <= k) & (sum1 >= k):
@@ -133,14 +129,12 @@ def _binary_search(beta, k, input_data, alpha):
             sum0 = _compute_theta(
                 beta,
                 data_abs,
-                alpha[midpoint],
-                extra_factor,
+                alpha[midpoint]
             ).sum()
             sum1 = _compute_theta(
                 beta,
                 data_abs,
-                alpha[midpoint + 1],
-                extra_factor,
+                alpha[midpoint + 1]
             ).sum()
 
             if sum0 <= k <= sum1:
@@ -206,7 +200,6 @@ def _find_alpha(beta, k, input_data):
         k,
         input_data,
         alpha,
-        extra_factor,
     )
 
     # Interpolate alpha^\star such that its sum is equal to k

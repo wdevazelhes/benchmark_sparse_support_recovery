@@ -55,11 +55,7 @@ class ProxGD(BaseSolver):
 
             step = 1 / lipschitz
             w -= step * grad
-            if hasattr(penalty, "prox_vec"):
-                w = penalty.prox_vec(w.copy(), step)  # we copy just in case
-            else:
-                # w = _prox_vec(w, z, penalty, step)
-                raise('I went into that part of the code')  # I am not sure why we should go there
+            w = penalty.prox_vec(w.copy(), step)  # we copy just in case
             Xw = X @ w
             # z = w
             # z = w + (t_old - 1.) / t_new * (w - w_old)
