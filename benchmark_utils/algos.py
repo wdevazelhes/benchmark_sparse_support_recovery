@@ -2,7 +2,7 @@ import numpy as np
 from scipy.sparse import issparse
 from skglm.solvers.base import BaseSolver
 from skglm.solvers.common import construct_grad, construct_grad_sparse
-from skglm.utils.prox_funcs import _prox_vec
+from .utils import _prox_vec
 
 
 class ProxGD(BaseSolver):
@@ -55,7 +55,7 @@ class ProxGD(BaseSolver):
 
             step = 1 / lipschitz
             w -= step * grad
-            w = penalty.prox_vec(w.copy(), step)  # we copy just in case
+            w = _prox_vec(penalty, w.copy(), step)  # we copy just in case
             Xw = X @ w
             # z = w
             # z = w + (t_old - 1.) / t_new * (w - w_old)

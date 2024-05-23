@@ -277,3 +277,20 @@ def _find_q(sorted_data, k):
                 first_idx = q_val
 
     return q_val
+
+
+
+@njit
+def prox_ksn(x, coef, k):
+        if coef < 1:
+            # print(coef, k, x)
+            return _op_method(coef/(1 - coef), k, x/(1-coef))
+        else: 
+            # return 1
+            return _hard_threshold(x, k)
+        
+
+@njit
+def _prox_vec(penalty, w, step):
+    # a = 0 + 'a'
+    return penalty.prox_vec(w, step)

@@ -34,7 +34,7 @@ from skglm.penalties import (L1, WeightedL1, L1_plus_L2, L2, WeightedGroupL2,
                              MCPenalty, WeightedMCPenalty, IndicatorBox, L2_1)
 from skglm.utils.data import grp_converter
 
-from .utils import _binary_search, _compute_theta, _find_alpha, _find_q, _hard_threshold, _interpolate, _ksncost, _op_method
+from .utils import _binary_search, _compute_theta, _find_alpha, _find_q, _hard_threshold, _interpolate, _ksncost, _op_method, prox_ksn
 
 # from modopt.opt.proximity import KSupportNorm
 import sys
@@ -86,12 +86,8 @@ class KSN(BasePenalty):
         alpha = self.alpha
         coef = stepsize * alpha
         k = self.k
-        if coef < 1:
-            # print(coef, k, x)
-            return _op_method(coef/(1 - coef), k, x/(1-coef))
-        else: 
-            # return 1
-            return _hard_threshold(x, k)
+        return prox_ksn(x, coef, k)
+
         # prox = np.zeros_like(x)
 
         # abs_x = np.abs(x)
