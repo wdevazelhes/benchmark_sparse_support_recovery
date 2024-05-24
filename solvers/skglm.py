@@ -1,5 +1,7 @@
 from benchopt import BaseSolver, safe_import_context
 from benchopt.stopping_criterion import SingleRunCriterion
+from benchmark_utils.stopping_criterion import RunOnGridCriterion
+
 from benchmark_utils.ksn import KSN
 from benchmark_utils.algos import ProxGD
 
@@ -11,8 +13,8 @@ with safe_import_context() as import_ctx:
 
 class Solver(BaseSolver):
     name = "skglm"
-    # stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
-    stopping_criterion = SingleRunCriterion(1)
+    stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
+    # stopping_criterion = SingleRunCriterion(1)
     parameters = {
         "estimator": ["lasso", "enet", "mcp", "ksn_optim"],
         # "estimator": ["lasso", "enet", "mcp", "ksn_optim", "ksn_0_1", "ksn_0_3", "ksn_0_6"],
@@ -39,12 +41,12 @@ class Solver(BaseSolver):
             self.alphaNum,
         )
 
-    def run(self, n_iter):
+    def run(self, grid_value):
         # The grid_value parameter is the current entry in
         # self.stopping_criterion.grid which is the amount of sparsity we
         # target in the solution, i.e., the fraction of non-zero entries.
-        # k = int(np.floor(grid_value * self.X.shape[1]))
-        k = np.count_nonzero(self.w_true)
+        k = int(np.floor(grid_value * self.X.shape[1]))
+        # k = np.count_nonzero(self.w_true)
 
         if self.estimator == "lasso":
             solver_class = Lasso
@@ -62,7 +64,7 @@ class Solver(BaseSolver):
         for alpha in self.alphaGrid:
             w_old = w
             if self.estimator == "ksn_optim":
-                solver = solver_class(penalty=KSN(alpha, np.count_nonzero(self.w_true)), solver=ProxGD(max_iter=self.max_iter, tol=1e-4, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
+                solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-4, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
             # elif self.estimator == "ksn_0_1":
             #     solver = solver_class(penalty=KSN(int(0.1 * self.X.shape[1]), alpha), datafit=Quadratic, solver=ProxGD)
             # elif self.estimator == "ksn_0_3":
