@@ -39,12 +39,10 @@ def _compute_theta(beta, input_data, alpha):
         #     np.expand_dims(alpha, -1),
         #     np.expand_dims(np.abs(input_data), -1).T,
         # )a
-        print(f"alpha{alpha}")
-        print(input_data)
-        alpha_input = np.dot(
-            alpha[..., None],
-            np.abs(input_data)[..., None].T,
-        )
+        # print(f"alpha{alpha}")
+        # print(input_data)
+        # 1/0
+        alpha_input = alpha * np.expand_dims(input_data, 0)
         theta = np.zeros(alpha_input.shape)
         alpha_beta = alpha_input - beta * extra_factor
         theta = alpha_beta * ((alpha_beta <= 1) & (alpha_beta >= 0))
@@ -155,9 +153,7 @@ def _binary_search(beta, k, input_data, alpha):
             prev_midpoint = midpoint
 
         if found:
-            return (
-                midpoint, alpha[midpoint], alpha[midpoint + 1], sum0, sum1,
-            )
+            return midpoint, alpha[midpoint], alpha[midpoint + 1], sum0, sum1
         
         else:
             raise ValueError(
@@ -202,7 +198,7 @@ def _find_alpha(beta, k, input_data):
     alpha = np.sort(np.unique(alpha))
 
     # Identify points alpha^i and alpha^{i+1} line 2. Algorithm 1
-    _, alpha_midpoint, alpha_midpoint_p_1, sum0, sum1, = _binary_search(
+    useless_variable, alpha_midpoint, alpha_midpoint_p_1, sum0, sum1 = _binary_search(
         beta,
         k,
         input_data,
