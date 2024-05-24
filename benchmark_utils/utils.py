@@ -261,6 +261,7 @@ def _find_q(sorted_data, k):
 
         q_val = (first_idx + last_idx) // 2
         cnt += 1
+        assert k != q_val
         l1_part = sorted_data[q_val:].sum() / (k - q_val)
 
         if (
