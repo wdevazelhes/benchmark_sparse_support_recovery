@@ -10,6 +10,7 @@ def _ksncost(w, k, beta):
     ix = np.argsort(data_abs)[::-1]
     data_abs = data_abs[ix]  # Sorted absolute value of the data
     q_val = _find_q(data_abs, k)
+    assert k != q_val
     cost_val = (
         (
             np.sum(data_abs[:q_val] ** 2)
