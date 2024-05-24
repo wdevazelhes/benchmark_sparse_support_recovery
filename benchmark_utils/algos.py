@@ -55,7 +55,7 @@ class ProxGD(BaseSolver):
 
             step = 1 / lipschitz
             w -= step * grad
-            w = _prox_vec(penalty, w.copy(), step)  # we copy just in case
+            w = _prox_vec(w.copy(), step, penalty)  # we copy just in case
             Xw = X @ w
             # z = w
             # z = w + (t_old - 1.) / t_new * (w - w_old)

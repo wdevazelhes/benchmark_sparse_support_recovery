@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from numba import njit
 
-
+EPS = sys.float_info.epsilon
 
 @njit
 def _ksncost(w, k, beta):
@@ -35,9 +35,15 @@ def _hard_threshold(arr, k):
 @njit
 def _compute_theta(beta, input_data, alpha):
         extra_factor=1.0
+        # alpha_input = np.dot(
+        #     np.expand_dims(alpha, -1),
+        #     np.expand_dims(np.abs(input_data), -1).T,
+        # )a
+        print(f"alpha{alpha}")
+        print(input_data)
         alpha_input = np.dot(
-            np.expand_dims(alpha, -1),
-            np.expand_dims(np.abs(input_data), -1).T,
+            alpha[..., None],
+            np.abs(input_data)[..., None].T,
         )
         theta = np.zeros(alpha_input.shape)
         alpha_beta = alpha_input - beta * extra_factor
@@ -152,12 +158,13 @@ def _binary_search(beta, k, input_data, alpha):
             return (
                 midpoint, alpha[midpoint], alpha[midpoint + 1], sum0, sum1,
             )
-
-        raise ValueError(
-            'Cannot find the coordinate of alpha (i) such '
-            + 'that sum(theta(alpha[i])) =< k and '
-            + 'sum(theta(alpha[i+1])) >= k ',
-        )
+        
+        else:
+            raise ValueError(
+                'Cannot find the coordinate of alpha (i) such '
+                + 'that sum(theta(alpha[i])) =< k and '
+                + 'sum(theta(alpha[i+1])) >= k ',
+            )
 
 @njit
 def _find_alpha(beta, k, input_data):
@@ -186,16 +193,16 @@ def _find_alpha(beta, k, input_data):
     data_abs = np.abs(input_data)
     alpha[:data_size] = (
         (beta * extra_factor)
-        / (data_abs + sys.float_info.epsilon)
+        / (data_abs + EPS)
     )
     alpha[data_size:] = (
         (beta * extra_factor + 1)
-        / (data_abs + sys.float_info.epsilon)
+        / (data_abs + EPS)
     )
     alpha = np.sort(np.unique(alpha))
 
     # Identify points alpha^i and alpha^{i+1} line 2. Algorithm 1
-    _, *alpha_sum = _binary_search(
+    _, alpha_midpoint, alpha_midpoint_p_1, sum0, sum1, = _binary_search(
         beta,
         k,
         input_data,
@@ -203,22 +210,15 @@ def _find_alpha(beta, k, input_data):
     )
 
     # Interpolate alpha^\star such that its sum is equal to k
-    return _interpolate(k, *alpha_sum)
+    return _interpolate(k, alpha_midpoint, alpha_midpoint_p_1, sum0, sum1)
 
 @njit
-def _op_method(beta, k, input_data):
+def _op_method(input_data, beta, k):
     # return 1.0
     extra_factor = 1.0
     data_shape = input_data.shape
-    k_max = np.product(data_shape)
     # k_max = np.prod(data_shape)
     # print('starting op')
-    if k > k_max:
-        raise(
-            'K value of the K-support norm is greater than the input '
-            + 'dimension, its value will be set to {0}'.format(k_max),
-        )
-        k = k_max
 
     # Computes line 1., 2. and 3. in Algorithm 1
     # print('finding alpha')
@@ -229,10 +229,11 @@ def _op_method(beta, k, input_data):
     theta = _compute_theta(beta, np.abs(input_data.flatten()), alpha)
 
     # Computes line 5. in Algorithm 1.
-    rslt = np.nan_to_num(
-        (input_data.flatten() * theta)
-        / (theta + beta * extra_factor),
-    )
+    # rslt = np.nan_to_num(
+    #     (input_data.flatten() * theta)
+    #     / (theta + beta * extra_factor),
+    # )
+    rslt = (input_data.flatten() * theta)/ (theta + beta * extra_factor)
     return rslt.reshape(data_shape)
 
 
@@ -282,15 +283,26 @@ def _find_q(sorted_data, k):
 
 @njit
 def prox_ksn(x, coef, k):
+
+
+        # print(_op_method(x/(1-coef), coef/(1 - coef), k).shape)
+        # print(_hard_threshold(x, k).shape)
+        # print(_op_method(x/(1-coef), coef/(1 - coef), k).dtype)
+        # print(_op_method(x/(1-coef), coef/(1 - coef), k).dtype)
         if coef < 1:
             # print(coef, k, x)
-            return _op_method(coef/(1 - coef), k, x/(1-coef))
+            # return np.array([1, 2])
+            return _op_method(x/(1-coef), coef/(1 - coef), k)
+            # return _hard_threshold(x, k)
+    
         else: 
             # return 1
+            # return np.array([1, 2])
+            # return _op_method(x/(1-coef), coef/(1 - coef), k)
             return _hard_threshold(x, k)
         
 
 @njit
-def _prox_vec(penalty, w, step):
+def _prox_vec(w, step, penalty):
     # a = 0 + 'a'
     return penalty.prox_vec(w, step)

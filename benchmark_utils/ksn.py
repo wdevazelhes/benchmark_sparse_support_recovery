@@ -86,6 +86,14 @@ class KSN(BasePenalty):
         alpha = self.alpha
         coef = stepsize * alpha
         k = self.k
+        data_shape = x.shape
+        # k_max = np.product(data_shape)
+        # if k > k_max:
+        #     raise(
+        #         'K value of the K-support norm is greater than the input '
+        #         + 'dimension, its value will be set to {0}'.format(k_max),
+        #     )
+        #     k = k_max
         return prox_ksn(x, coef, k)
 
         # prox = np.zeros_like(x)
