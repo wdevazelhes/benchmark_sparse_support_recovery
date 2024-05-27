@@ -27,10 +27,9 @@ class Solver(BaseSolver):
     install_cmd = "conda"
     requirements = ["pip:skglm", "scipy"]
 
-    def set_objective(self, X, y, w_true):
+    def set_objective(self, X, y):
         self.X = X
         self.y = y
-        self.w_true = w_true
         if self.estimator in ["ksn_optim", "ksn_0_1", "ksn_0_3", "ksn_0_6"]:
             self.alphaMax = np.linalg.norm(self.X, ord=2) ** 2 / len(self.y)
         else:

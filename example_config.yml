@@ -15,4 +15,4 @@ solver:
   - omp
   - skglm
 n-repetitions: 1
-timeout: 6000
+timeout: 60000

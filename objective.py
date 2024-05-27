@@ -57,4 +57,4 @@ class Objective(BaseObjective):
         return metrics
 
     def get_objective(self):
-        return dict(X=self.X, y=self.y, w_true=self.w_true)
+        return dict(X=self.X, y=self.y)
