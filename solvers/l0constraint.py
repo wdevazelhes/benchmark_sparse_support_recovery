@@ -9,7 +9,7 @@ with safe_import_context() as import_ctx:
 class Solver(BaseSolver):
     name = "l0constraint"
     # stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.1, 10))
-    stopping_criterion = RunOnGridCriterion(grid=np.linspace(1, 0.3, 10))
+    stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
 
     install_cmd = "conda"
     requirements = ["pip:gurobipy"]
@@ -22,7 +22,7 @@ class Solver(BaseSolver):
         # The grid_value parameter is the current entry in
         # self.stopping_criterion.grid which is the amount of sparsity we
         # target in the solution, i.e., the fraction of non-zero entries.
-        k = int(np.floor(grid_value * self.X.shape[1]))
+        k = max(1, int(np.floor(grid_value * self.X.shape[1])))
 
         n = self.X.shape[1]
         M = 10 * np.max(np.abs(np.linalg.lstsq(self.X, self.y, rcond=None)[0]))
