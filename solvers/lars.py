@@ -10,7 +10,8 @@ with safe_import_context() as import_ctx:
 
 class Solver(BaseSolver):
     name = "lars"
-    stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
+    # stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
+    stopping_criterion = RunOnGridCriterion(grid=np.linspace(1, 0.3, 10))
     parameters = {
         "debiasing_step": [False, True]
     }

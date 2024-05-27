@@ -14,7 +14,7 @@ with safe_import_context() as import_ctx:
 class Solver(BaseSolver):
     name = "skglm"
     # grid_sparsity =  # TODO: I can deal with the grid better here, to ensure that the true k appears, and also that there is no k=0 at the beginning
-    stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
+    stopping_criterion = RunOnGridCriterion(grid=np.linspace(1, 0.3, 10))
     # stopping_criterion = SingleRunCriterion(1)
     parameters = {
         "estimator": ["lasso", "enet", "mcp", "ksn_optim"],
@@ -48,8 +48,6 @@ class Solver(BaseSolver):
         k = int(np.floor(grid_value * self.X.shape[1]))
         # print(k)
         # 1/0
-        if k == 0:
-            k = 1  # not super clean
         # k = np.count_nonzero(self.w_true)
 
         if self.estimator == "lasso":
