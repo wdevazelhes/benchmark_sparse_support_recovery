@@ -66,7 +66,7 @@ class Solver(BaseSolver):
         for alpha in self.alphaGrid:
             w_old = w
             if self.estimator == "ksn_optim":
-                solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-4, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
+                solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-8, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
             # elif self.estimator == "ksn_0_1":
             #     solver = solver_class(penalty=KSN(int(0.1 * self.X.shape[1]), alpha), datafit=Quadratic, solver=ProxGD)
             # elif self.estimator == "ksn_0_3":
@@ -75,7 +75,7 @@ class Solver(BaseSolver):
             #     solver = solver_class(penalty=KSN(int(0.6 * self.X.shape[1]), alpha), datafit=Quadratic, solver=ProxGD)
             else:
                 solver = solver_class(
-                    alpha=alpha, max_iter=self.max_iter, fit_intercept=False
+                    alpha=alpha, max_iter=self.max_iter, fit_intercept=False, tol=1e-8
                 )
             solver.fit(self.X, self.y)
             w = solver.coef_.flatten()
