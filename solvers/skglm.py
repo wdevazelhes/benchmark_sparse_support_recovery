@@ -60,10 +60,10 @@ class Solver(BaseSolver):
         for alpha in self.alphaGrid:
             w_old = w
             if self.estimator == "ksnn":
-                solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-8, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
+                solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-7, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
             else:
                 solver = solver_class(
-                    alpha=alpha, max_iter=self.max_iter, fit_intercept=False, tol=1e-8
+                    alpha=alpha, max_iter=self.max_iter, fit_intercept=False, tol=1e-7
                 )
             solver.fit(self.X, self.y)
             w = solver.coef_.flatten()
