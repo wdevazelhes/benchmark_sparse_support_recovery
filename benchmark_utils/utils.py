@@ -4,6 +4,9 @@ from numba import njit
 
 EPS = sys.float_info.epsilon
 
+# Similarly to the content of ksn.py, this code contains copy pasting from the code from here: https://cea-cosmic.github.io/ModOpt/_modules/modopt/opt/proximity.html#KSupportNorm in order to compile it in numba
+
+
 @njit
 def _ksncost(w, k, beta):
     data_abs = np.abs(w)
@@ -20,9 +23,6 @@ def _ksncost(w, k, beta):
         ) * beta
     )
 
-    # if 'verbose' in kwargs and kwargs['verbose']:
-    #     print(' - K-SUPPORT NORM (X):', cost_val)
-    # print('cost done')
     return cost_val
 
 @njit
@@ -36,13 +36,6 @@ def _hard_threshold(arr, k):
 @njit
 def _compute_theta(beta, input_data, alpha):
         extra_factor=1.0
-        # alpha_input = np.dot(
-        #     np.expand_dims(alpha, -1),
-        #     np.expand_dims(np.abs(input_data), -1).T,
-        # )a
-        # print(f"alpha{alpha}")
-        # print(input_data)
-        # 1/0
         alpha_input = alpha * np.expand_dims(input_data, 0)
         theta = np.zeros(alpha_input.shape)
         alpha_beta = alpha_input - beta * extra_factor
@@ -214,8 +207,6 @@ def _op_method(input_data, beta, k):
     # return 1.0
     extra_factor = 1.0
     data_shape = input_data.shape
-    # k_max = np.prod(data_shape)
-    # print('starting op')
 
     # Computes line 1., 2. and 3. in Algorithm 1
     # print('finding alpha')
@@ -226,11 +217,11 @@ def _op_method(input_data, beta, k):
     theta = _compute_theta(beta, np.abs(input_data.flatten()), alpha)
 
     # Computes line 5. in Algorithm 1.
-    # rslt = np.nan_to_num(
-    #     (input_data.flatten() * theta)
-    #     / (theta + beta * extra_factor),
-    # )
-    rslt = (input_data.flatten() * theta)/ (theta + beta * extra_factor)
+    rslt = np.nan_to_num(
+        (input_data.flatten() * theta)
+        / (theta + beta * extra_factor),
+    )
+    # rslt = (input_data.flatten() * theta)/ (theta + beta * extra_factor)
     return rslt.reshape(data_shape)
 
 
@@ -281,26 +272,12 @@ def _find_q(sorted_data, k):
 
 @njit
 def prox_ksn(x, coef, k):
-
-
-        # print(_op_method(x/(1-coef), coef/(1 - coef), k).shape)
-        # print(_hard_threshold(x, k).shape)
-        # print(_op_method(x/(1-coef), coef/(1 - coef), k).dtype)
-        # print(_op_method(x/(1-coef), coef/(1 - coef), k).dtype)
         if coef < 1:
-            # print(coef, k, x)
-            # return np.array([1, 2])
             return _op_method(x/(1-coef), coef/(1 - coef), k)
-            # return _hard_threshold(x, k)
-    
         else: 
-            # return 1
-            # return np.array([1, 2])
-            # return _op_method(x/(1-coef), coef/(1 - coef), k)
             return _hard_threshold(x, k)
         
 
 @njit
 def _prox_vec(w, step, penalty):
-    # a = 0 + 'a'
     return penalty.prox_vec(w, step)

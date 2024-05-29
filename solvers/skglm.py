@@ -13,12 +13,9 @@ with safe_import_context() as import_ctx:
 
 class Solver(BaseSolver):
     name = "skglm"
-    # grid_sparsity =  # TODO: I can deal with the grid better here, to ensure that the true k appears, and also that there is no k=0 at the beginning
     stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
-    # stopping_criterion = SingleRunCriterion(1)
     parameters = {
-        "estimator": ["lasso", "enet", "mcp", "ksn_optim"],
-        # "estimator": ["lasso", "enet", "mcp", "ksn_optim", "ksn_0_1", "ksn_0_3", "ksn_0_6"],
+        "estimator": ["lasso", "enet", "mcp", "ksnn"],
         "max_iter": [1_0000000],
         "alphaNum": [1_000],
         "alphaRatio": [1e-10],
@@ -30,7 +27,7 @@ class Solver(BaseSolver):
     def set_objective(self, X, y):
         self.X = X
         self.y = y
-        if self.estimator in ["ksn_optim", "ksn_0_1", "ksn_0_3", "ksn_0_6"]:
+        if self.estimator in ["ksnn", "ksn_0_1", "ksn_0_3", "ksn_0_6"]:
             self.alphaMax = np.linalg.norm(self.X, ord=2) ** 2 / len(self.y)
         else:
             self.alphaMax = np.linalg.norm(self.X.T @ self.y, np.inf) / y.size
@@ -46,9 +43,6 @@ class Solver(BaseSolver):
         # self.stopping_criterion.grid which is the amount of sparsity we
         # target in the solution, i.e., the fraction of non-zero entries.
         k = max(1, int(np.floor(grid_value * self.X.shape[1])))
-        # print(k)
-        # 1/0
-        # k = np.count_nonzero(self.w_true)
 
         if self.estimator == "lasso":
             solver_class = Lasso
@@ -57,7 +51,7 @@ class Solver(BaseSolver):
             self.alphaGrid *= 2.0
         elif self.estimator == "mcp":
             solver_class = MCPRegression
-        elif self.estimator in ["ksn_optim", "ksn_0_1", "ksn_0_3", "ksn_0_6"]:
+        elif self.estimator in ["ksnn", "ksn_0_1", "ksn_0_3", "ksn_0_6"]:
             solver_class = GeneralizedLinearEstimator
         else:
             raise ValueError(f"Unknown estimator {self.estimator}")
@@ -65,17 +59,11 @@ class Solver(BaseSolver):
         w = np.zeros(self.X.shape[1])
         for alpha in self.alphaGrid:
             w_old = w
-            if self.estimator == "ksn_optim":
-                solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-6, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
-            # elif self.estimator == "ksn_0_1":
-            #     solver = solver_class(penalty=KSN(int(0.1 * self.X.shape[1]), alpha), datafit=Quadratic, solver=ProxGD)
-            # elif self.estimator == "ksn_0_3":
-            #     solver = solver_class(penalty=KSN(int(0.3 * self.X.shape[1]), alpha), datafit=Quadratic, solver=ProxGD)
-            # elif self.estimator == "ksn_0_6":
-            #     solver = solver_class(penalty=KSN(int(0.6 * self.X.shape[1]), alpha), datafit=Quadratic, solver=ProxGD)
+            if self.estimator == "ksnn":
+                solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-8, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
             else:
                 solver = solver_class(
-                    alpha=alpha, max_iter=self.max_iter, fit_intercept=False, tol=1e-6
+                    alpha=alpha, max_iter=self.max_iter, fit_intercept=False, tol=1e-8
                 )
             solver.fit(self.X, self.y)
             w = solver.coef_.flatten()

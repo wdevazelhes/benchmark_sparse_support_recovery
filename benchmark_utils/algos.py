@@ -25,7 +25,6 @@ class ProxGD(BaseSolver):
         t_new = 1.
 
         w = w_init.copy() if w_init is not None else np.zeros(n_features)
-        # z = w_init.copy() if w_init is not None else np.zeros(n_features)
         Xw = Xw_init.copy() if Xw_init is not None else np.zeros(n_samples)
 
         if X_is_sparse:

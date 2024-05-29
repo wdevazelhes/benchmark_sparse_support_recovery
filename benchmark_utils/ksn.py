@@ -39,7 +39,7 @@ from .utils import _binary_search, _compute_theta, _find_alpha, _find_q, _hard_t
 # from modopt.opt.proximity import KSupportNorm
 import sys
 
-# This is a copy paste from the code from here: https://cea-cosmic.github.io/ModOpt/_modules/modopt/opt/proximity.html#KSupportNorm
+# This contains some copy-paste from the code from here: https://cea-cosmic.github.io/ModOpt/_modules/modopt/opt/proximity.html#KSupportNorm
 # in order to compile it in numba
 
 
@@ -58,11 +58,6 @@ class KSN(BasePenalty):
     def __init__(self, alpha, k):
         self.alpha = alpha
         self.k = k
-        # self._ksn_for_cost = KSupportNorm(beta=alpha, k_value=k)
-        # if alpha < 1:
-        #     self._ksn_for_prox = KSupportNorm(beta=alpha/(1 - alpha), k_value=k)
-        # else:
-        #     self._ksn_for_prox = None
 
     def get_spec(self):
         spec = (
@@ -82,7 +77,6 @@ class KSN(BasePenalty):
         return alpha * (1/2 * _ksncost(w, k, alpha) - 1/2 * np.linalg.norm(w)**2)
 
     def prox_vec(self, x, stepsize):
-        # print('computing a prox')
         alpha = self.alpha
         coef = stepsize * alpha
         k = self.k
@@ -96,13 +90,6 @@ class KSN(BasePenalty):
         #     k = k_max
         return prox_ksn(x, coef, k)
 
-        # prox = np.zeros_like(x)
-
-        # abs_x = np.abs(x)
-        # sorted_indices = np.argsort(abs_x)[::-1]
-        # prox[sorted_indices] = prox_SLOPE(abs_x[sorted_indices], alphas * stepsize)
-
-        # return np.sign(x) * prox
 
     def prox_1d(self, value, stepsize, j):
         raise ValueError(
