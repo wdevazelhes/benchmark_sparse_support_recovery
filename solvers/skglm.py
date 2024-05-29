@@ -10,12 +10,14 @@ with safe_import_context() as import_ctx:
     from scipy.linalg import lstsq
     from skglm import Lasso, ElasticNet, MCPRegression, GeneralizedLinearEstimator
     from skglm.datafits import Quadratic
+    from skglm.penalties import SCAD, L0_5, L2_3
+    from skglm.solvers import AndersonCD
 
 class Solver(BaseSolver):
     name = "skglm"
     stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
     parameters = {
-        "estimator": ["lasso", "enet", "mcp", "ksnn"],
+        "estimator": ["lasso", "enet", "mcp", "ksnn", "scad", "l05", "l23"],
         "max_iter": [1_0000000],
         "alphaNum": [1_000],
         "alphaRatio": [1e-10],
@@ -27,7 +29,7 @@ class Solver(BaseSolver):
     def set_objective(self, X, y):
         self.X = X
         self.y = y
-        if self.estimator in ["ksnn", "ksn_0_1", "ksn_0_3", "ksn_0_6"]:
+        if self.estimator == "ksnn":
             self.alphaMax = np.linalg.norm(self.X, ord=2) ** 2 / len(self.y)
         else:
             self.alphaMax = np.linalg.norm(self.X.T @ self.y, np.inf) / y.size
@@ -51,7 +53,7 @@ class Solver(BaseSolver):
             self.alphaGrid *= 2.0
         elif self.estimator == "mcp":
             solver_class = MCPRegression
-        elif self.estimator in ["ksnn", "ksn_0_1", "ksn_0_3", "ksn_0_6"]:
+        elif self.estimator in ["ksnn", "scad", "l05", "l23"]:
             solver_class = GeneralizedLinearEstimator
         else:
             raise ValueError(f"Unknown estimator {self.estimator}")
@@ -61,6 +63,12 @@ class Solver(BaseSolver):
             w_old = w
             if self.estimator == "ksnn":
                 solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-7, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
+            elif self.estimator == "scad":
+                solver = solver_class(penalty=SCAD(alpha, 3.), solver=AndersonCD(max_iter=self.max_iter, tol=1e-7, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
+            elif self.estimator == "l05":
+                solver = solver_class(penalty=L0_5(alpha), solver=AndersonCD(max_iter=self.max_iter, tol=1e-7, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
+            elif self.estimator == "l23":
+                solver = solver_class(penalty=L2_3(alpha), solver=AndersonCD(max_iter=self.max_iter, tol=1e-7, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
             else:
                 solver = solver_class(
                     alpha=alpha, max_iter=self.max_iter, fit_intercept=False, tol=1e-7
