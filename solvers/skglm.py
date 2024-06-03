@@ -18,7 +18,7 @@ class Solver(BaseSolver):
     stopping_criterion = RunOnGridCriterion(grid=np.linspace(0, 0.3, 10))
     parameters = {
         "estimator": ["lasso", "enet", "mcp", "scad", "l05", "l23", "ksnn"],
-        "max_iter": [1_0000000],
+        "max_iter": [1_00000000],
         "alphaNum": [1_000],
         "alphaRatio": [1e-10],
         "debiasing_step": [False, True],
