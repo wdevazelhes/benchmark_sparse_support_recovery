@@ -64,11 +64,11 @@ class Solver(BaseSolver):
             if self.estimator == "ksnn":
                 solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-7, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
             elif self.estimator == "scad":
-                solver = solver_class(penalty=SCAD(alpha, 3.), solver=AndersonCD(max_iter=self.max_iter, tol=1e-7, verbose=0, fit_intercept=False))
+                solver = solver_class(penalty=SCAD(alpha, 3.), solver=AndersonCD(max_iter=self.max_iter, tol=1e-7, verbose=0, ws_strategy='fixpoint', fit_intercept=False))
             elif self.estimator == "l05":
-                solver = solver_class(penalty=L0_5(alpha), solver=ProxGD(max_iter=self.max_iter, tol=1e-7, verbose=0, fit_intercept=False, opt_strategy="fixpoint"))
+                solver = solver_class(penalty=L0_5(alpha), solver=AndersonCD(max_iter=self.max_iter, tol=1e-7, verbose=0, ws_strategy='fixpoint', fit_intercept=False))
             elif self.estimator == "l23":
-                solver = solver_class(penalty=L2_3(alpha), solver=ProxGD(max_iter=self.max_iter, tol=1e-7, verbose=0, fit_intercept=False, opt_strategy="fixpoint"))
+                solver = solver_class(penalty=L2_3(alpha), solver=AndersonCD(max_iter=self.max_iter, tol=1e-7, verbose=0, ws_strategy='fixpoint', fit_intercept=False))
             else:
                 solver = solver_class(
                     alpha=alpha, max_iter=self.max_iter, fit_intercept=False, tol=1e-7
