@@ -52,7 +52,7 @@ class ProxGD(BaseSolver):
                 else:
                     grad = construct_grad(X, y, w, X @ w, datafit, all_features)
 
-            step = 1 / lipschitz
+            step = 0.5 / lipschitz
             w -= step * grad
             w = _prox_vec(w.copy(), step, penalty)  # we copy just in case
             Xw = X @ w
@@ -62,7 +62,7 @@ class ProxGD(BaseSolver):
             if self.opt_strategy == "subdiff":
                 opt = penalty.subdiff_distance(w, grad, all_features)
             elif self.opt_strategy == "fixpoint":
-                opt = np.abs(w - penalty.prox_vec(w - grad / lipschitz, 1 / lipschitz))
+                opt = np.abs(w - penalty.prox_vec(w - grad *step , step))
             else:
                 raise ValueError(
                     "Unknown error optimality strategy. Expected "
