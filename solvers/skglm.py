@@ -30,7 +30,7 @@ class Solver(BaseSolver):
         self.X = X
         self.y = y
         if self.estimator == "ksnn":
-            self.alphaMax = np.linalg.norm(self.X, ord=2) ** 2 / len(self.y)
+            self.alphaMax = 2 * np.linalg.norm(self.X, ord=2) ** 2 / len(self.y)
         else:
             self.alphaMax = np.linalg.norm(self.X.T @ self.y, np.inf) / y.size
         self.alphaMin = self.alphaRatio * self.alphaMax
