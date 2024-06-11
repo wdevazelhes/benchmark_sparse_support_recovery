@@ -1,0 +1,264 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{The Non-Convex $k$-Support Norm Penalty}
+
+
+
+\usepackage{amsmath,amssymb,bm,amsthm}
+
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\usepackage{graphicx}
+
+\usepackage{url}
+\author{William de Vazelhes}
+\date{}
+% \date{May 2024}
+
+\begin{document}
+
+\maketitle
+
+
+\section{Description of the problem and introduction of our regularization}
+
+We will consider the following optimization problem: 
+
+$$ \min_{x \in \mathbb{R}^d} g(x) + \lambda h(x), $$
+
+where $g$ is a smooth function, and $h$ is a penalty term which goal is to ensure sparsity of the solution $x$, and $\lambda \geq 0$ is the penalty strength. We will consider the following (new up to our knowledge) non-convex penalty term: 
+
+$$h(x) := g(x) - \frac{1}{2} \|x \|^2,$$
+
+where $g(\cdot) := \frac{1}{2}\left(\| \cdot \|^{sp}_{k}\right)^2 $ denotes the half-squared $k$-support norm defined in \cite{argyriou2012sparse}. We will optimize this problem with (non-convex) proximal gradient descent \cite{xu2019non}.
+
+
+\section{Motivation}
+
+Such penalty is $0$ for (at most) $k$ sparse vectors, and non-zero for vectors with more than $k$ non-zero elements (the reason why will become clearer from the proofs below). As such, when $\lambda \rightarrow \infty$, the penalty converges to the indicator of the $\ell_0$ pseudo-ball of radius $k$. It is (to our knowledge) the first and only non-convex penalty which explicitly allows to specify a precise sparsity $k$ (except the $\ell_0$ penalty itself) (in comparison, other non-convex penalties such as SCAD, MCP, or $\ell_p$ norms, will penalize any non-zero vector, even if its sparsity is smaller than $k$). Indeed, as will be shown below, for any $x \in \mathbb{R}^d$, we have: $\| x \|^{sp}_{k} \geq \| x\|_2$, and we have equality if and only if $x$ is (at most) $k$-sparse.
+
+\section{Closed form for the proximal operator}
+
+We recall the definition of the proximal operator, for some function $h: \mathbb{R}^d \rightarrow \mathbb{R}$, and for all $z \in \mathbb{R}^d$: 
+
+$$\text{prox}_{h}(z) \in \arg\min_{x} h(x) + \frac{1}{2} \| x - z\|^2 $$
+
+
+
+
+
+% Denote by $f$ our non-convex regularization based on the $k$-support norm:
+
+
+Below we give the closed form for the proximal operator of $\lambda h$, which shows that it can be obtained efficiently from the proximal operator of the half-squared $k$-support norm (which is known, cf. \cite{argyriou2012sparse} or \cite{mcdonald2016new}).
+
+\begin{lemma}\label{lem:proximal_closed_form}
+    
+$$\text{prox}_{\lambda h} (z) = \begin{cases}
+    \text{prox}_{\frac{\lambda}{1 - \lambda} g}(\frac{1}{1 - \lambda}z) ~\text{if}~ \lambda < 1\\
+    \mathcal{H}_k(z) ~\text{if}~ \lambda \geq 1
+\end{cases}, $$
+
+
+% $f(x) = \frac{1}{2} \left(\|x \|^{sp}_{k}\right)^2 - \frac{1}{2} \|x \|^2$
+
+% $$\text{prox}_{\lambda f} (z) = \begin{cases}
+%     \text{prox}_{\frac{\lambda}{1 - \lambda} f}(\frac{1}{1 - \lambda}z)\\
+%     \mathcal{H}_k(z) ~\text{if}~ \lambda \geq 1
+% \end{cases}, $$
+
+where $ \mathcal{H}_k$ denotes the hard-thresholding operator, which keeps the $k$ largest components (in absolute value), and sets the remaining one to 0 (if there are ties, we can break them for instance lexicographically).
+\end{lemma}
+
+
+\begin{proof}
+
+\textbf{Case 1: $\lambda < 1$}
+
+We have: 
+
+\begin{align*}
+    \text{prox}_{\lambda h} (z) &= \arg\min_{x} \lambda \left(\frac{1}{2} \left(\|x \|^{sp}_{k}\right)^2 - \frac{1}{2} \|x \|^2 \right) + \frac{1}{2} \| x - z\|^2\\
+    &= \arg\min_{x} \frac{\lambda}{2} \left(\|x \|^{sp}_{k}\right)^2 + \frac{1-\lambda}{2} \|x \|^2  -  \langle x, z \rangle\\
+        &= \arg\min_{x} \frac{\lambda}{2(1-\lambda)} \left(\|x \|^{sp}_{k}\right)^2  +\frac{1}{2} \|x \|^2  -  \langle x, \frac{1}{1-\lambda} z \rangle\\
+        &= \arg\min_{x} \frac{\lambda}{2(1-\lambda)} \left(\|x \|^{sp}_{k}\right)^2  +\frac{1}{2} \|x - \frac{1}{1 - \lambda} z \|^2\\
+        &= \text{prox}_{\frac{\lambda}{1- \lambda} g} (\frac{1}{1 - \lambda} z)
+    % &\overset{(a)}{=}\arg\min_{x} \frac{\lambda}{2} \left(\|x \|^{sp}_{k}\right)^2 + \frac{1 - \lambda}{2} \| x \|^2 +  \frac{1}{2} \|\frac{1}{1 - \lambda} z\|^2 -  \langle (1-\lambda)x, \frac{1}{(1 - \lambda)} z \rangle\\
+    % &=\arg\min_{x} \frac{\lambda}{2} \left(\|x \|^{sp}_{k}\right)^2 + \frac{1}{2}\| x - \frac{1}{1 - \lambda}z\|^2 \\
+    %     &=\arg\min_{x} \frac{\lambda}{2} \left(\|x \|^{sp}_{k}\right)^2 + \frac{1}{2}\| x - \frac{1}{1 - \lambda}z\|^2 \\
+    %     &=\arg\min_{x} \frac{\lambda}{2} \left(\|x \|^{sp}_{k}\right)^2 + \frac{1}{2}\| x - \frac{1}{1 - \lambda}z\|^2 \\
+    % &=  \text{prox}_{\lambda f} \left(\frac{1}{1 - \lambda}z\right) 
+\end{align*}
+
+Where we used the fact that changing the optimization problem by an additive constant and/or a strictly positive multiplicative constant does not change the $\arg\min$.
+
+\textbf{Case 2: $\lambda \geq 1$}
+
+
+% Let us consider the $\ell_0$ pseudo-norm of a vector $x$, denoted $\| x\|_0$, defined as the number of non-zero components of that vector. Note that the $\ell_0$ pseudo-norm is not a norm. We call the $\ell_0$ pseudo-ball of radius $k$ the set of vectors which $\ell_0$ pseudo-norm is lower or equal than $k$. 
+\cite{argyriou2012sparse} introduce the $k$-support norm as the norm which unit ball is the tightest convex relaxation of the $\ell_0$-pseudo-ball (of radius $k$) and the $\ell_2$ unit ball, that is, the $k$-support support norm is the gauge function associated to the following set: $\mathcal{C}_k = \text{conv}\{x \in \mathbb{R}^d: \| x\|_0 \leq k \text{ and } \| x\|_2\leq 1\}$, that is for a vector $x \in \mathbb{R}^d$: $\| x \|_{k}^{sp} = \inf \{ \lambda \in \mathbb{R}_{+} \text{ s.t. }  x \in \lambda \mathcal{C}_k\}$ (as per  footnote 4 in \cite{argyriou2012sparse}).  Let us now consider some $(v, w) \in (\mathbb{R}^d)^2$. 
+% Since this set $\mathcal{C}_k$ is actually the convex hull of the set $C_k$, this means that for any $w \in \mathbb{R}^d$
+According to the above, there exist, for some $N \in \mathbb{N}$, some $\{y_i\}_{i=1}^N$ s.t. $w = \lambda \sum_{i=1}^N \nu_i y_i $ with $\lambda \leq \| w\|_{k}^{sp}$ and for all $i$ in $[N]$, $\| y_i\|_2 \leq 1$, $\|y_i \|_0 \leq k$, $\nu_i \in [0, 1]$, and $\sum_{i=1}^N \nu_i = 1$. Since the $k$-support norm is a norm (and therefore verifies the homogeneity property $\lambda \|\cdot \|_{k}^{sp} = \|\lambda \cdot \|_{k}^{sp}$), this implies (by defining $x_i := \lambda y_i$ for all $i \in [N]$ ) that there exist  some $\{x_i\}_{i=1}^N$ s.t. $w = \sum_{i=1}^N \nu_i x_i $ and for all $i$ in $[N]$,  $\|x_i \|_0 \leq k$, $\| x_i\| \leq \| x \|_{k}^{sp}$, $\nu_i \in [0, 1]$, and $\sum_{i=1}^N \nu_i = 1$.
+% Definition 2.1 we can express the $k$-support norm of a vector $x \in \mathbb{R}^d$ as a sum of vectors at most $k$-sparse, such that:
+% $\|w\|_k^{s p}:=\min \left\{\sum_{I \in \mathcal{G}_k(w)}\left\|v_I\right\|_2: v_{I} \in \mathbb{R}^d\operatorname{supp}\left(v_I\right) \subseteq I, \sum_{I \in \mathcal{G}_k} v_i=w\right\}$
+% where $\mathcal{G}_k$ denotes the set of all subsets of $\{1, ..., d\}$ of cardinality at most $k$.
+% Suppose $w = \sum_{i=1}^N x_i$.
+% We now have, for some $v \in \mathbb{R}^d$:
+Let us now consider the following function: 
+
+\begin{align}
+h_{v}(w)&:=\lambda \left(\frac{1}{2} \left(\|w\|_k^{s p}\right)^2 - \frac{1}{2} \|w\|^2 \right) + \frac{1}{2} \|w - v \|^2 \nonumber\\
+    &=\frac{\lambda}{2} \left(\|w\|_k^{s p}\right)^2 + \frac{1 - \lambda}{2} \| w \|^2 + \langle w, v \rangle + \frac{1}{2}\|v\|^2\nonumber\\
+&\overset{(a)}{\geq} \frac{\lambda}{2} \left(\|w\|_k^{s p}\right)^2 +  \frac{1 - \lambda}{2} \left( \sum_{i=1}^N \nu_i \| x_i \|^2 \right)+ \langle w, v \rangle + \frac{1}{2}\|v\|^2\nonumber\\
+&\overset{(b)}{\geq } \frac{\lambda}{2} \left(\sum_{i=1}^N\nu_i \|x_i\|^2\right) +  \frac{1 - \lambda}{2} \left( \sum_{i=1}^N \nu_i \| x_i \|^2 \right)+ \langle w, v \rangle + \frac{1}{2}\|v\|^2\nonumber\\
+&= \frac{1}{2} \left(\sum_{i=1}^N\nu_i \|x_i\|^2\right) + \left(\sum_{i=1}^N \langle x_i, v \rangle\right) + \sum_{i=1}^N  \frac{\nu_i}{2}\|v\|^2\nonumber\\
+&= \frac{1}{2}\sum_{i=1}^N \nu_i\| x_i  - v \|^2 \geq \frac{1}{2}\min_{i \in [N]}\| x_i  - v \|^2 \overset{(c)}{\geq} \frac{1}{2}\min_{x \in \mathbb{R}^d \text{ s.t. } \|x \|_0\leq k} \| x  - v \|^2\nonumber\\
+&\overset{(d)}{=} \frac{1}{2} \|\mathcal{H}_k(v) - v \|^2 \label{eq:finalineq}
+\end{align}
+
+where (a) follows from the Jensen inequality and the fact that $1 - \lambda \leq 0 $, (b) from the fact that for all $i \in [N]$, $\| x_i \| \leq \| w \|_{k}^{sp}$ as mentioned above, (c) from the fact that $\| x_i \|_0 \leq k$ for all $i \in [N]$ as mentioned above, and (e) from the fact that projecting a vector $v$ onto the $\ell_0$ pseudo-ball of radius $k$ amounts to taking the hard-thresholding operator of $v$, i.e. preserving the top-$k$ (in magnitude) components of $v$, and setting the others to 0 (ties can be broken lexicographically) (this can be easily seen by observing that the minimization problem for the projection is separable and can be done coordinate-wise).
+% Now, we can observe from the definition of the proximal operator that $\text{prox}_{\lambda f}(v) = \arg\min_{w \in \mathbb{R}^d} h_{v}(w)$. 
+Therefore, from \eqref{eq:finalineq} above, we have that: 
+\begin{equation}\label{eq:bound}
+    \forall w \in \mathbb{R}^d: h_{v}(w) \geq \frac{1}{2} \| \mathcal{H}_k(v) - v\|^2
+\end{equation}
+
+Additionally, for any $x \in \mathbb{R}^d$ such that $\|x \|_0 \leq k$, we have that $\| x\|_{k}^{sp} = \| x\|$ (see \cite{argyriou2012sparse} for more details, this can be seen for instance from Proposition 2.1 in \cite{argyriou2012sparse}), which implies that: 
+\begin{equation}\label{eq:attained}
+ h_v(\mathcal{H}_k(w)) = \lambda \times 0 + \frac{1}{2} \| \mathcal{H}_k(w) - v \|^2 = \frac{1}{2} \| \mathcal{H}_k(w) - v \|^2.    
+\end{equation} Therefore, from \eqref{eq:bound}, we have that for any $v \in \mathbb{R}^d$, $\frac{1}{2} \| \mathcal{H}_k(v) - v \|^2$ is a lower bound on $h_v(w)$ when $w$ spans $\mathbb{R}^d$, and from \eqref{eq:attained} we have that this lower bound is attained for $w = \mathcal{H}_k(v)$, therefore, that lower bound is the minimum of $h_v(w)$ when $w$ spans $\mathbb{R}^d$, which implies that:
+
+$$\mathcal{H}_k(v) \in \arg\min_{x \in \mathbb{R}^d} h_v(w) = \text{prox}_{\lambda h}(v)$$
+
+
+
+\end{proof}
+
+\section{Visualizing the penalty and its proximal operator}
+
+Below we provide a few visualizations for the penalty and the proximal operator of $\lambda h$, for various values of $\lambda$.
+
+\subsection{Visualizing the penalty}
+
+
+See colab notebook
+
+\subsection{Visualizing the proximal operator}
+
+
+See colab notebook
+
+
+\section{Proximal Gradient descent with KSNN generalizes IHT}
+
+Recall that one usual update rule of proximal gradient descent for minimizing a function $g + \lambda h$, where $g$ is $L$-smooth, is: 
+
+$$x_{t+\frac{1}{2}} \leftarrow \text{prox}_{\eta \lambda h}(x_t - \eta \nabla F (x))$$
+
+Such an algorithm rule is guaranteed to converge to a stationary point for an appropriate choice of learning rate $\eta$, even in the case where $g$ is non-convex, (see for instance Theorem 1 in \cite{xu2019non}). Therefore, as we can see from above, if $\lambda \geq \frac{1}{\eta}$, such proximal algorithm will fall back to the Iterative Hard Thresholding algorithm (IHT). As such, we will study below the case where $\lambda < \eta$, where interesting things happen.
+
+\section{Why it is a "more powerful IHT"}
+
+% The algorithm will converge to a fixed point for the proximal operator (TODO: find the proof/reference). 
+
+% What happens is that a fixed point for the proximal operator of our penalty is a fixed point for the hard-thresholding operator. 
+
+% Now, the way we use our penalty is the way that it is used in the \texttt{benchmark\_sparse\_recovery} benchopt benchmark: 
+
+% As we can see, if $\lambda$
+
+
+We will consider a typical usage of non-convex penalties: say we have an optimization problem (linear regression, logistic regression, or other), and we wish to use our non-convex regularization to obtain a $k$-sparse vector. A typical way to do that with many regularizations (convex or non-convex) is to gradually decrease the penalty strength as much as possible such that the solution still remains $k$-sparse: this is the solution adopted in the \texttt{benchmark\_sparse\_support\_recovery}\footnote{\url{https://github.com/TheoGuyard/benchmark_sparse_support_recovery}}, and it is the approach we adopt too with our non-convex regularization.  Now, assume that we have obtained a $k$-sparse fixed point when using our non-convex penalty $h$ with a strength $\lambda < \frac{1}{\eta}$ (let us call the corresponding Proximal Gradient Descent algorithm "Relaxed Hard-Thresholding" (RHT)), that is, we have converged to a fixed point of sparsity at most $k$, for some $\lambda < \frac{1}{\eta}$. We will prove below that such a fixed point is also a fixed point for the hard-thresholding udpdate. 
+
+
+\begin{lemma}(informal)
+Suppose that $\bar{x}$ is a fixed point for RHT, with some penalty strenght $\bar{\lambda} < \frac{1}{\eta}$. Then $\bar{x}$ is also a fixed point for IHT with the same learning rate.
+\end{lemma}
+
+
+\begin{proof}
+    
+Suppose that $\bar{x}$ is a fixed point for RHT, with some penalty strenght $\bar{\lambda} < \frac{1}{\eta}$. This means that:
+
+\begin{equation*}
+    \bar{x} \in \arg\min_{x} \bar{\lambda}  \left(\frac{1}{2} \left(\| x\|^{sp}_k\right)^2 - \frac{1}{2} \|x\|^2 \right)+ \frac{1}{2} \|\bar{x} - \eta \nabla F(\bar{x}) - x \|^2 
+\end{equation*}
+which implies (by definition of the min) that for all $x \in \mathbb{R}^d$: 
+
+\begin{align}
+     &\bar{\lambda}  \left(\frac{1}{2} \left(\| x\|^{sp}_k\right)^2 - \frac{1}{2} \|x\|^2 \right)+ \frac{1}{2} \|\bar{x} - \eta \nabla F(\bar{x}) - x \|^2 \nonumber\\
+     &\geq  \bar{\lambda} \left(\frac{1}{2} \left(\| \bar{x}\|^{sp}_k\right)^2 - \frac{1}{2} \|\bar{x}\|^2 \right)+ \frac{1}{2} \|\bar{x} - \eta \nabla F(\bar{x}) - \bar{x} \|^2 \label{eq:toadd1}
+\end{align}
+
+Now, on the other hand, we have, since $\bar{x}$ is (at most) $k$-sparse: 
+
+$$\frac{1}{2} \left(\| \bar{x}\|^{sp}_k\right)^2 = \frac{1}{2} \|\bar{x}\|^2 $$
+
+
+(such property can be easily shown from Proposition 2.1 in \cite{argyriou2012sparse}). And we also have that for any $x \in \mathbb{R^d}$ :
+$$\frac{1}{2} \left(\|x\|^{sp}_k\right)^2 \geq  \frac{1}{2} \|x\|^2 $$
+
+(this can be easily shown by decomposing $x$ into a sum of $\{z_i\}_{i=1}^N$ s.t. $x = \sum_{i=1}^N \nu_i z_i $ and for all $i$ in $[N]$,  $\|z_i \|_0 \leq k$, $\| z_i\| \leq \| x \|_{k}^{sp}$, $\nu_i \in [0, 1]$, and $\sum_{i=1}^N \nu_i = 1$, as in the proof of \ref{lem:proximal_closed_form}: then using the Jensen inequality we have: $\|x\|^2 = \|\sum_{i=1}^N \nu_i z_i \|^2 \leq \sum_{i=1}^N \nu_i \| z_i \|^2 \leq \sum_{i=1}^N \nu_i \left(\| x \|_{k}^{sp}\right)^2 =  \left(\| x \|_{k}^{sp}\right)^2$). Therefore we have for $\lambda := \frac{1}{\eta}$ (which implies $\lambda - \bar{\lambda} > 0$):
+
+\begin{equation}\label{eq:toadd2}
+   (\lambda - \bar{\lambda}) \left( \frac{1}{2} \left(\| x\|^{sp}_k\right)^2 - \frac{1}{2} \|x\|^2 \right) \geq   (\lambda - \bar{\lambda}) \left( \frac{1}{2} \left(\| \bar{x}\|^{sp}_k\right)^2 - \frac{1}{2} \|\bar{x}\|^2 \right) (= 0)
+\end{equation}
+
+Adding \eqref{eq:toadd1} and \eqref{eq:toadd2}, this implies that also have that, for all $x \in \mathbb{R}^d$: 
+
+\begin{align*}
+     &\lambda  \left(\frac{1}{2} \left(\| x\|^{sp}_k\right)^2 - \frac{1}{2} \|x\|^2 \right)+ \frac{1}{2} \|\bar{x} - \eta \nabla F(\bar{x}) - x \|^2 \\
+     &\geq  \lambda \left(\frac{1}{2} \left(\| \bar{x}\|^{sp}_k\right)^2 - \frac{1}{2} \|\bar{x}\|^2 \right)+ \frac{1}{2} \|\bar{x} - \eta \nabla F(\bar{x}) - \bar{x} \|^2
+\end{align*}
+
+
+Which implies that : 
+
+\begin{equation*}
+    \bar{x} \in \arg\min_{x} \lambda  \left(\frac{1}{2} \left(\| x\|^{sp}_k\right)^2 - \frac{1}{2} \|x\|^2 \right)+ \frac{1}{2} \|\bar{x} - \eta \nabla F(\bar{x}) - x \|^2 
+\end{equation*}
+
+And therefore, $\bar{x}$ is also a fixed point of IHT.
+
+
+\end{proof}
+
+
+
+We now provide an informal discussion on why this implies that RHT is a superior (or equal) algorithm to IHT.
+This means that any (at most) $k$-sparse fixed point for the "relaxed hard-thresholding update" (i.e. gradient step followed by our proximal operator with $\lambda < \frac{1}{\eta}$) is also a fixed point for the hard-thresholding algorithm. But the converse is not necessarily true. In other words, the set of (at most) $k$-sparse fixed points of the "relaxed thresholding" algorithm, is a subset of the set of $k$-sparse fixed points of the hard-thresholding algorithm. Now, in some sense, this subset of fixed points is necessarily better or equal than the full set, since the fixed points of HT which are not fixed points of RHT ($\mathcal{S}_{HT} \setminus \mathcal{S}_{RHT}$) are necessarily not as good as the best fixed point of HT : indeed, since those are not fixed points of RHT, this means that the algorithm will escape those points and continue running, but we know (TODO) that proximal gradient descent is a non-increasing algorithm, therefore the RHT will go to \textbf{lower (or equal) function values.}
+Note that this discussion on the superiority of fixed points over other fixed points was inspired by similar reasonings in \cite{beck2016minimization} (although in a different setting).
+
+
+\section{Experiments}
+
+We compare the KSNN non-convex penalty to other convex and non-convex penalties, by adding KSNN to the \texttt{benchmark\_sparse\_support\_recovery}\footnote{\url{https://github.com/TheoGuyard/benchmark_sparse_support_recovery}}. 
+
+
+TODO: check the html folder: to check it, one should select a benchmark, and the corresponding objective function
+NOTE: Select "Iteration" : it does not mean iteration in the sense of iterations of the algorithm, but it means "sparsity level": for each sparsity level (a scalar from 0 (full sparsity) to 1 (full density)), the objective is plotted. 
+For each sparsity level, for penalized algorithms, the penalty is varied as described in \texttt{benchmark\_sparse\_support\_recovery}\footnote{\url{https://github.com/TheoGuyard/benchmark_sparse_support_recovery}}, that is: "The solver fits a regularization path, i.e., it progressively decreases the Lasso, Elastic-Net or MCP penalty weight, and returns the last solution with  non-zero elements in the regularization path." More details can also be found in the code itself. We provide the code in the following branch: \url{https://github.com/wdevazelhes/benchmark_sparse_support_recovery/tree/just_get_snr}
+The curves plotted will then be: 
+The description of what that benchmark is doing is done here: 
+
+\url{https://github.com/TheoGuyard/benchmark_sparse_support_recovery}
+
+
+We kept all default parameters, but only increased the tolerance to $1e-7$ for all skglm algorithms, (including our algorithm which we add into the skglm framework), and we used a learning rate of $\eta = L/2$ for our algorithm, in order to verify the assumption of \cite{xu2019non}.
+Note: do not check the time
+
+TODO: give more details
+
+\bibliographystyle{plain}
+\bibliography{bibli}
+
+
+\end{document}
+
+
