@@ -34,6 +34,9 @@ class ProxGD(BaseSolver):
             datafit.initialize(X, y)
             lipschitz = datafit.get_global_lipschitz(X, y)        
         
+
+        old_obj = np.inf
+
         for n_iter in range(self.max_iter):
             # t_old = t_new
             # t_new = (1 + np.sqrt(1 + 4 * t_old ** 2)) / 2
@@ -59,19 +62,25 @@ class ProxGD(BaseSolver):
             # z = w
             # z = w + (t_old - 1.) / t_new * (w - w_old)
 
-            if self.opt_strategy == "subdiff":
-                opt = penalty.subdiff_distance(w, grad, all_features)
-            elif self.opt_strategy == "fixpoint":
-                opt = np.abs(w - penalty.prox_vec(w - grad *step , step))
-            else:
-                raise ValueError(
-                    "Unknown error optimality strategy. Expected "
-                    f"`subdiff` or `fixpoint`. Got {self.opt_strategy}")
-
-            stop_crit = np.max(opt)
+            # if self.opt_strategy == "subdiff":
+            #     opt = penalty.subdiff_distance(w, grad, all_features)
+            # elif self.opt_strategy == "fixpoint":
+            #     opt = np.abs(w - penalty.prox_vec(w - grad *step , step))
+            # else:
+            #     raise ValueError(
+            #         "Unknown error optimality strategy. Expected "
+            #         f"`subdiff` or `fixpoint`. Got {self.opt_strategy}")
 
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             p_objs_out.append(p_obj)
+
+            opt = np.abs(old_obj - p_obj) / p_obj
+            old_obj = p_obj
+
+
+
+            stop_crit = opt
+
             if self.verbose:
                 print(
                     f"Iteration {n_iter+1}: {p_obj:.10f}, "

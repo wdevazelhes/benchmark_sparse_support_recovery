@@ -62,7 +62,7 @@ class Solver(BaseSolver):
         for alpha in self.alphaGrid:
             w_old = w
             if self.estimator == "ksnn":
-                solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-7, opt_strategy="fixpoint", verbose=0, fit_intercept=False))
+                solver = solver_class(penalty=KSN(alpha, k), solver=ProxGD(max_iter=self.max_iter, tol=1e-7, verbose=0, fit_intercept=False))
             elif self.estimator == "scad":
                 solver = solver_class(penalty=SCAD(alpha, 3.), solver=AndersonCD(max_iter=self.max_iter, tol=1e-7, verbose=0, ws_strategy='fixpoint', fit_intercept=False))
             elif self.estimator == "l05":
