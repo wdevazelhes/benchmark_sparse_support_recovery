@@ -165,14 +165,6 @@ Such an algorithm rule is guaranteed to converge to a stationary point for an ap
 
 \section{Why it is a "more powerful IHT"}
 
-% The algorithm will converge to a fixed point for the proximal operator (TODO: find the proof/reference). 
-
-% What happens is that a fixed point for the proximal operator of our penalty is a fixed point for the hard-thresholding operator. 
-
-% Now, the way we use our penalty is the way that it is used in the \texttt{benchmark\_sparse\_recovery} benchopt benchmark: 
-
-% As we can see, if $\lambda$
-
 
 We will consider a typical usage of non-convex penalties: say we have an optimization problem (linear regression, logistic regression, or other), and we wish to use our non-convex regularization to obtain a $k$-sparse vector. A typical way to do that with many regularizations (convex or non-convex) is to gradually decrease the penalty strength as much as possible such that the solution still remains $k$-sparse: this is the solution adopted in the \texttt{benchmark\_sparse\_support\_recovery}\footnote{\url{https://github.com/TheoGuyard/benchmark_sparse_support_recovery}}, and it is the approach we adopt too with our non-convex regularization.  Now, assume that we have obtained a $k$-sparse fixed point when using our non-convex penalty $h$ with a strength $\lambda < \frac{1}{\eta}$ (let us call the corresponding Proximal Gradient Descent algorithm "Relaxed Hard-Thresholding" (RHT)), that is, we have converged to a fixed point of sparsity at most $k$, for some $\lambda < \frac{1}{\eta}$. We will prove below that such a fixed point is also a fixed point for the hard-thresholding udpdate. 
 
