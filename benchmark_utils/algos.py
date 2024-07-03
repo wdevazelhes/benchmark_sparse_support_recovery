@@ -55,7 +55,7 @@ class ProxGD(BaseSolver):
                 else:
                     grad = construct_grad(X, y, w, X @ w, datafit, all_features)
 
-            step = 0.99 / lipschitz
+            step = 1 / lipschitz
             w -= step * grad
             w = _prox_vec(w.copy(), step, penalty)  # we copy just in case
             Xw = X @ w
