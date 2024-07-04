@@ -74,7 +74,7 @@ class KSN(BasePenalty):
         # print('computing a cost')
         k = self.k
         alpha = self.alpha
-        return alpha * (1/2 * _ksncost(w, k, alpha) - 1/2 * np.linalg.norm(w)**2)
+        return alpha * (1/2 * _ksncost(w, k, 1) - 1/2 * np.linalg.norm(w)**2)
 
     def prox_vec(self, x, stepsize):
         alpha = self.alpha

@@ -9,7 +9,7 @@ class ProxGD(BaseSolver):
     r"""ProxGD solver.
     """
 
-    def __init__(self, max_iter=100, tol=1e-4, opt_strategy="subdiff", verbose=0, fit_intercept=False):
+    def __init__(self, max_iter=100, tol=1e-4, opt_strategy="fixpoint", verbose=0, fit_intercept=False):
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
@@ -35,7 +35,7 @@ class ProxGD(BaseSolver):
             lipschitz = datafit.get_global_lipschitz(X, y)        
         
 
-        old_obj = np.inf
+        # old_obj = np.inf
 
         for n_iter in range(self.max_iter):
             # t_old = t_new
@@ -55,31 +55,33 @@ class ProxGD(BaseSolver):
                 else:
                     grad = construct_grad(X, y, w, X @ w, datafit, all_features)
 
-            step = 1 / lipschitz
+            step = 0.99 * 1 / lipschitz
             w -= step * grad
             w = _prox_vec(w.copy(), step, penalty)  # we copy just in case
             Xw = X @ w
             # z = w
             # z = w + (t_old - 1.) / t_new * (w - w_old)
 
-            # if self.opt_strategy == "subdiff":
-            #     opt = penalty.subdiff_distance(w, grad, all_features)
-            # elif self.opt_strategy == "fixpoint":
-            #     opt = np.abs(w - penalty.prox_vec(w - grad *step , step))
-            # else:
-            #     raise ValueError(
-            #         "Unknown error optimality strategy. Expected "
-            #         f"`subdiff` or `fixpoint`. Got {self.opt_strategy}")
+            if self.opt_strategy == "subdiff":
+                opt = penalty.subdiff_distance(w, grad, all_features)
+            elif self.opt_strategy == "fixpoint":
+                opt = np.abs(w - penalty.prox_vec(w - grad *step , step))
+            else:
+                raise ValueError(
+                    "Unknown error optimality strategy. Expected "
+                    f"`subdiff` or `fixpoint`. Got {self.opt_strategy}")
+
+            stop_crit = np.max(opt)
 
             p_obj = datafit.value(y, w, Xw) + penalty.value(w)
             p_objs_out.append(p_obj)
 
-            opt = np.abs(old_obj - p_obj) / p_obj
-            old_obj = p_obj
+            # opt = np.abs(old_obj - p_obj) / p_obj
+            # old_obj = p_obj
 
 
 
-            stop_crit = opt
+            # stop_crit = opt
 
             if self.verbose:
                 print(
